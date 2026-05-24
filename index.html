@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Freelancer Taskboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=20260523-0001">
+</head>
+<body>
+
+<!-- ── TOOLBAR ── -->
+<div id="toolbar">
+  <span class="logo-mark editable-setting" id="studio-name" contenteditable="true" spellcheck="false">Your Studio</span>
+
+  <input type="text" id="search-input" placeholder="Search cards…">
+
+  <span class="sep"></span>
+
+  <button class="toolbar-btn" id="compact-toggle">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 5h12M2 8h12M2 11h12"/></svg>
+    Compact
+  </button>
+
+  <button class="toolbar-btn" id="export-board-btn">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2H4a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V6L9 2z"/><path d="M9 2v4h4M6 9l2 2 2-2M8 11V7"/></svg>
+    Export Board JSON
+  </button>
+
+  <button class="toolbar-btn" id="import-board-btn">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2v8M5 7l3 3 3-3"/><path d="M3 13h10"/></svg>
+    Import Board JSON
+  </button>
+  <input id="import-board-file" type="file" accept="application/json,.json" hidden>
+
+  <div id="backup-meta">
+    <span id="last-saved-label">Last saved: Never</span>
+    <span id="last-imported-label">Last imported: Never</span>
+  </div>
+
+  <button class="toolbar-btn" id="invoice-btn">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 2h8v12H4z"/><path d="M6 5h4M6 8h4M6 11h2"/></svg>
+    Generate Invoice
+  </button>
+
+  <button class="toolbar-btn reset-board-btn" id="reset-board-btn">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8a5 5 0 118.5 3.5M3 8V4M3 8h4"/></svg>
+    Reset Board
+  </button>
+
+  <button class="toolbar-btn" id="dark-toggle">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13.2 10.7A5.8 5.8 0 015.3 2.8 6.1 6.1 0 1013.2 10.7z"/></svg>
+    Dark
+  </button>
+</div>
+
+<!-- ── HEADER ── -->
+<div id="header">
+  <div class="header-top">
+
+    <!-- Left: title block -->
+    <div class="header-title-block">
+      <div class="project-eyebrow">Freelancer Project Board</div>
+      <div class="project-title editable-setting" id="project-name" contenteditable="true" spellcheck="false">Freelancer Taskboard</div>
+      <span class="project-title-accent"></span>
+      <div class="project-subtitle editable-setting" id="project-subtitle" contenteditable="true" spellcheck="false">Plan tasks, track time, invoice completed work, and keep project assets in one place.</div>
+    </div>
+
+    <!-- Progress stats -->
+    <div class="progress-panel">
+      <div class="progress-client">
+        <span>Client</span>
+        <strong class="editable-setting" id="client-name" contenteditable="true" spellcheck="false">Your Client / Project</strong>
+      </div>
+      <div id="progress-bar-area">
+        <div class="stat-chip">
+          <span class="num" id="stat-total">0</span>
+          <span class="lbl">Cards Total</span>
+        </div>
+        <div class="stat-chip done">
+          <span class="num" id="stat-done">0</span>
+          <span class="lbl">Done</span>
+        </div>
+        <div class="stat-chip active">
+          <span class="num" id="stat-prog">0</span>
+          <span class="lbl">In Progress</span>
+        </div>
+        <div class="stat-chip" style="border-right:none;">
+          <span class="status-badge editable-setting" id="project-status" contenteditable="true" spellcheck="false">Planning</span>
+          <span class="lbl" style="margin-top:3px;">Status</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.header-top -->
+</div><!-- /#header -->
+
+<div class="header-rule"></div>
+
+<!-- ── FILTER STRIP ── -->
+<div id="filter-strip">
+  <span class="filter-strip-label">Filter</span>
+</div>
+
+<!-- ── BOARD ── -->
+<div id="board"></div>
+
+<!-- ── MODAL ── -->
+<div id="modal-overlay">
+  <div id="modal"></div>
+</div>
+
+<!-- ── INVOICE MODAL ── -->
+<div id="invoice-overlay">
+  <div id="invoice-modal">
+    <div class="invoice-builder">
+      <div class="invoice-controls">
+        <div class="invoice-modal-header">
+          <div>
+            <div class="modal-label">Invoice Generator</div>
+            <h2>Generate Invoice</h2>
+          </div>
+          <button class="modal-close" id="invoice-close-btn">✕</button>
+        </div>
+
+        <div class="modal-row">
+          <div class="modal-section">
+            <label class="modal-label">Invoice Number</label>
+            <input class="modal-input" id="invoice-number" type="text">
+          </div>
+          <div class="modal-section">
+            <label class="modal-label">Invoice Date</label>
+            <input class="modal-input" id="invoice-date" type="date">
+          </div>
+        </div>
+
+        <div class="modal-row">
+          <div class="modal-section">
+            <label class="modal-label">Sender</label>
+            <input class="modal-input invoice-setting-input" id="invoice-sender-name" data-setting="senderName" type="text">
+          </div>
+          <div class="modal-section">
+            <label class="modal-label">Billed To</label>
+            <input class="modal-input invoice-setting-input" id="invoice-client-name" data-setting="clientBillingName" type="text">
+          </div>
+        </div>
+
+        <div class="modal-row">
+          <div class="modal-section">
+            <label class="modal-label">Sender Address</label>
+            <textarea class="modal-textarea invoice-setting-input" id="invoice-sender-address" data-setting="senderAddress"></textarea>
+          </div>
+          <div class="modal-section">
+            <label class="modal-label">Client Address</label>
+            <textarea class="modal-textarea invoice-setting-input" id="invoice-client-address" data-setting="clientBillingAddress"></textarea>
+          </div>
+        </div>
+
+        <div class="modal-section">
+          <label class="modal-label">Payment Information</label>
+          <textarea class="modal-textarea invoice-setting-input" id="invoice-payment-info" data-setting="paymentInfo"></textarea>
+        </div>
+
+        <div class="modal-section">
+          <label class="modal-label">Invoice Mode</label>
+          <div class="invoice-mode-toggle">
+            <label><input type="radio" name="invoice-mode" value="detailed" checked> Detailed</label>
+            <label><input type="radio" name="invoice-mode" value="grouped"> Grouped</label>
+          </div>
+        </div>
+
+        <div class="invoice-actions">
+          <button class="btn-secondary" id="invoice-select-ready">Select Ready to Invoice</button>
+          <button class="btn-secondary" id="invoice-clear-selection">Clear</button>
+        </div>
+
+        <div class="modal-section">
+          <label class="modal-label">Completed Tasks</label>
+          <div id="invoice-task-list"></div>
+        </div>
+
+        <div class="invoice-actions invoice-actions-stacked">
+          <button class="btn-primary" id="invoice-print-btn">Print / Save PDF</button>
+          <button class="btn-secondary" id="invoice-mark-invoiced-btn">Mark Selected Tasks as Invoiced</button>
+        </div>
+
+        <div class="modal-section invoice-history-section">
+          <label class="modal-label">Invoice History</label>
+          <div id="invoice-history-list"></div>
+        </div>
+      </div>
+
+      <div class="invoice-preview-wrap">
+        <div id="invoice-preview"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── EARNINGS PANEL ── -->
+<div id="earnings-panel" class="collapsed">
+  <button id="earnings-toggle" type="button" aria-expanded="false">
+    <span>Earned total</span>
+    <strong id="earnings-collapsed-total">0</strong>
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6l4 4 4-4"/></svg>
+  </button>
+  <div id="earnings-details">
+    <div class="earnings-section-block">
+      <div class="earnings-section-title">Earned</div>
+      <div class="earnings-row">
+        <span>Billable hours entered</span>
+        <strong id="earnings-billable-hours">0h</strong>
+      </div>
+      <div class="earnings-row">
+        <span>Total earned from hours</span>
+        <strong id="earnings-total">0</strong>
+      </div>
+      <div class="earnings-row">
+        <span>Not invoiced yet</span>
+        <strong id="earnings-uninvoiced">0</strong>
+      </div>
+    </div>
+
+    <div class="earnings-section-block">
+      <div class="earnings-section-title">Invoiced</div>
+      <div class="earnings-row">
+        <span>Ready to invoice</span>
+        <strong id="earnings-ready">0</strong>
+      </div>
+      <div class="earnings-row">
+        <span>Already invoiced</span>
+        <strong id="earnings-invoiced">0</strong>
+      </div>
+    </div>
+
+    <div class="earnings-row">
+      <span>Remaining estimated value</span>
+      <strong id="earnings-remaining">0</strong>
+    </div>
+    <div class="earnings-foot">
+      <span id="earnings-estimated-range">Estimated range: 0-0</span>
+      <label class="default-rate-control">
+        <span>Default rate</span>
+        <input id="default-hourly-rate" type="number" min="0" step="1" value="30">
+        <select id="currency-select" aria-label="Currency">
+          <option value="EUR">EUR</option>
+          <option value="USD">USD</option>
+          <option value="GBP">GBP</option>
+          <option value="TRY">TRY</option>
+          <option value="CAD">CAD</option>
+          <option value="AUD">AUD</option>
+          <option value="CHF">CHF</option>
+          <option value="SEK">SEK</option>
+          <option value="NOK">NOK</option>
+          <option value="DKK">DKK</option>
+          <option value="JPY">JPY</option>
+        </select>
+        <span>/h</span>
+      </label>
+    </div>
+  </div>
+</div>
+
+<script src="script.js?v=20260523-0001"></script>
+</body>
+</html>
